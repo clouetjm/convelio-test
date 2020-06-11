@@ -8,7 +8,6 @@ use ApplicationContext;
 use DestinationRepository;
 use Quote;
 use QuoteRepository;
-use SiteRepository;
 use Template;
 
 class TemplateManager implements TemplateManagerInterface
@@ -31,55 +30,32 @@ class TemplateManager implements TemplateManagerInterface
 
     private function computeText($text, array $data)
     {
-        $applicationContext = ApplicationContext::getInstance();
-
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
 
-        if ($quote) {
+        if (null !== $quote) {
             $quoteFromRepository = QuoteRepository::getInstance()->getById($quote->id);
-            $site = SiteRepository::getInstance()->getById($quote->siteId);
             $quoteDestination = DestinationRepository::getInstance()->getById($quote->destinationId);
 
-            if (strpos($text, '[quote:destination_link]') !== false) {
-                $destination = DestinationRepository::getInstance()->getById($quote->destinationId);
+            if (strpos($text, '[quote:summary_html]') !== false) {
+                $text = str_replace(
+                    '[quote:summary_html]',
+                    Quote::renderHtml($quoteFromRepository),
+                    $text
+                );
             }
 
-            $containsSummaryHtml = strpos($text, '[quote:summary_html]');
-            $containsSummary = strpos($text, '[quote:summary]');
-
-            if ($containsSummaryHtml !== false || $containsSummary !== false) {
-                if ($containsSummaryHtml !== false) {
-                    $text = str_replace(
-                        '[quote:summary_html]',
-                        Quote::renderHtml($quoteFromRepository),
-                        $text
-                    );
-                }
-                if ($containsSummary !== false) {
-                    $text = str_replace(
-                        '[quote:summary]',
-                        Quote::renderText($quoteFromRepository),
-                        $text
-                    );
-                }
+            if (strpos($text, '[quote:summary]') !== false) {
+                $text = str_replace(
+                    '[quote:summary]',
+                    Quote::renderText($quoteFromRepository),
+                    $text
+                );
             }
 
             (strpos($text, '[quote:destination_name]') !== false) and $text = str_replace('[quote:destination_name]', $quoteDestination->countryName, $text);
         }
 
-        $replace = '';
-
-        if (isset($destination)) {
-            $replace = $site->url . '/' . $destination->countryName . '/quote/' . $quoteFromRepository->id;
-        }
-
-        $text = str_replace('[quote:destination_link]', $replace, $text);
-
-        /*
-         * USER [user:*]
-         */
-        $user = (isset($data['user']) and ($data['user'] instanceof User)) ? $data['user'] : $applicationContext->getCurrentUser();
-        if ($user) {
+        if ($user = ApplicationContext::getInstance()->getCurrentUser()) {
             (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]', ucfirst(mb_strtolower($user->firstname)), $text);
         }
 

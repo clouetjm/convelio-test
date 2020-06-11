@@ -8,6 +8,7 @@ class ApplicationContext
      * @var Site
      */
     private $currentSite;
+
     /**
      * @var User
      */
