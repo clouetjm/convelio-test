@@ -11,7 +11,6 @@ use QuoteRepository;
 use SiteRepository;
 use Template;
 
-
 class TemplateManager implements TemplateManagerInterface
 {
     /**
@@ -32,7 +31,7 @@ class TemplateManager implements TemplateManagerInterface
 
     private function computeText($text, array $data)
     {
-        $APPLICATION_CONTEXT = ApplicationContext::getInstance();
+        $applicationContext = ApplicationContext::getInstance();
 
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
 
@@ -78,7 +77,7 @@ class TemplateManager implements TemplateManagerInterface
          * USER
          * [user:*]
          */
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
+        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $applicationContext->getCurrentUser();
         if($_user) {
             (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]'       , ucfirst(mb_strtolower($_user->firstname)), $text);
         }
